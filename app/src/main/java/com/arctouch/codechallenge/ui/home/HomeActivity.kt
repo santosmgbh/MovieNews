@@ -1,8 +1,7 @@
 package com.arctouch.codechallenge.ui.home
 
 import android.os.Bundle
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -14,6 +13,9 @@ import org.koin.android.viewmodel.ext.android.viewModel
 class HomeActivity : AppCompatActivity() {
 
     private val homeActivityViewModel: HomeActivityViewModel by viewModel()
+    private val homeAdapter by lazy {
+        HomeAdapter()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,30 +24,35 @@ class HomeActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewmodel = homeActivityViewModel
 
-        val homeAdapter = HomeAdapter()
         homeAdapter.onItemClick = {
-            val child = binding.recyclerView.getChildLayoutPosition(it)
-
-            val movie = homeAdapter.getItemFromPosition(child)
-            movie?.id?.let { movieId ->
-                startActivity(DetailActivity.openActivityIntent(this, movieId))
-            }
+            onClickItemList(binding, it, homeAdapter)
 
         }
         binding.recyclerView.adapter = homeAdapter
+
+        configObservers()
+        configActionBar()
+    }
+
+    private fun configObservers() {
         homeActivityViewModel.moviesLiveData.observe(this, Observer {
             homeAdapter.submitList(it)
         })
-
         homeActivityViewModel.progressLoadStatus.observe(this, Observer {
-            if (it == HomeDataSource.LoadingStatus.LOADING) {
-                homeActivityViewModel.progressVisible.set(VISIBLE)
-            } else if (it == HomeDataSource.LoadingStatus.LOADED) {
-                homeActivityViewModel.progressVisible.set(GONE)
-            }
+            homeActivityViewModel.updateProgressStatus(it)
         })
+    }
+
+    private fun configActionBar() {
         supportActionBar?.let {
             it.title = getString(R.string.home_toolbar_title)
+        }
+    }
+
+    private fun onClickItemList(binding: HomeActivityBinding, it: View, homeAdapter: HomeAdapter) {
+        val movieId = homeActivityViewModel.getMovieId(it, binding.recyclerView, homeAdapter)
+        movieId?.let {
+            startActivity(DetailActivity.openActivityIntent(this, it))
         }
     }
 }
