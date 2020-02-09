@@ -1,7 +1,8 @@
 package com.arctouch.codechallenge.ui.home
 
 import android.os.Bundle
-import android.view.View
+import android.view.View.GONE
+import androidx.lifecycle.Observer
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.ui.base.BaseActivity
 import kotlinx.android.synthetic.main.home_activity.*
@@ -15,9 +16,9 @@ class HomeActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_activity)
 
-        homeActivityViewModel.showUpcomingVideos { movies ->
+        homeActivityViewModel.showUpcomingVideos().observe(this, Observer { movies ->
             recyclerView.adapter = HomeAdapter(movies)
-            progressBar.visibility = View.GONE
-        }
+            homeActivityViewModel.progressVisible.set(GONE)
+        })
     }
 }

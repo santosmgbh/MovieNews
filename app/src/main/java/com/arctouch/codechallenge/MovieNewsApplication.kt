@@ -9,7 +9,6 @@ class MovieNewsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
         startKoin {
             androidLogger()
             androidContext(this@MovieNewsApplication)

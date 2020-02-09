@@ -1,43 +1,72 @@
 package com.arctouch.codechallenge.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.arctouch.codechallenge.model.Genre
 import com.arctouch.codechallenge.model.Movie
-import com.arctouch.codechallenge.repository.data.Cache
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
+import com.arctouch.codechallenge.repository.data.MovieDao
+import com.arctouch.codechallenge.repository.webservice.MovieService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 
-class MovieRepositoryImpl : MovieRepository {
-    private val api: TmdbApi = Retrofit.Builder()
-            .baseUrl(TmdbApi.URL)
-            .client(OkHttpClient.Builder().build())
-            .addConverterFactory(MoshiConverterFactory.create())
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .build()
-            .create(TmdbApi::class.java)
+class MovieRepositoryImpl : MovieRepository, KoinComponent {
 
-    override fun getUpcomingVideos(success: (movies: List<Movie>) -> Unit) {
-        api.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, 1, TmdbApi.DEFAULT_REGION)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    val moviesWithGenres = it.results.map { movie ->
-                        movie.copy(genres = Cache.genres.filter { movie.genreIds?.contains(it.id) == true })
-                    }
-                    success(moviesWithGenres)
-                }
+    private val database: MovieDao by inject()
+    private val movieService by lazy {
+        MovieService()
     }
 
-    override fun getGenres(success: (genres: List<Genre>) -> Unit) {
-        api.genres(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Cache.cacheGenres(it.genres)
-                    success(it.genres)
+    override fun getUpcomingVideos(): LiveData<List<Movie>> {
+        val response = MutableLiveData<List<Movie>>()
+        movieService.getUpcomingMovies {
+            getGenres { genres ->
+                val moviesWithGenres = fillGenresInMovies(it, genres)
+                response.value = moviesWithGenres
+            }
+
+        }
+        return response
+    }
+
+    private fun fillGenresInMovies(it: List<Movie>, cachedGenres: List<Genre>): List<Movie> {
+        return it.map { movie ->
+            movie.copy(genres = cachedGenres.filter { movie.genreIds?.contains(it.id) == true })
+        }
+    }
+
+
+    override fun getGenres(): LiveData<List<Genre>> {
+        val response = MutableLiveData<List<Genre>>()
+
+        getGenres {
+            response.value = it
+        }
+        return response
+    }
+
+    private fun getGenres(success: (genres: List<Genre>) -> Unit) {
+        GlobalScope.launch {
+            val cachedGenres = database.getGenres()
+
+            if (cachedGenres.isNullOrEmpty()) {
+                movieService.getGenres { genres ->
+                    GlobalScope.launch {
+                        database.insertAll(genres)
+                    }
+                    GlobalScope.launch(context = Dispatchers.Main) {
+                        success(genres)
+                    }
+
                 }
+            } else {
+                GlobalScope.launch(context = Dispatchers.Main) {
+                    success(cachedGenres)
+                }
+            }
+        }
+
     }
 }
