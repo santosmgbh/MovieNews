@@ -3,7 +3,7 @@ package com.arctouch.codechallenge.repository.webservice
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitConfig {
 
@@ -15,7 +15,7 @@ class RetrofitConfig {
         Retrofit.Builder()
                 .baseUrl(TmdbApi.URL)
                 .client(client)
-                .addConverterFactory(MoshiConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
     }

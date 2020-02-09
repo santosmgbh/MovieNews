@@ -2,10 +2,12 @@ package com.arctouch.codechallenge.ui.home
 
 import android.os.Bundle
 import android.view.View.GONE
+import android.view.View.VISIBLE
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.arctouch.codechallenge.R
+import com.arctouch.codechallenge.databinding.HomeActivityBinding
 import com.arctouch.codechallenge.ui.base.BaseActivity
-import kotlinx.android.synthetic.main.home_activity.*
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class HomeActivity : BaseActivity() {
@@ -14,11 +16,23 @@ class HomeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.home_activity)
+        val binding: HomeActivityBinding = DataBindingUtil.setContentView(this, R.layout.home_activity)
 
-        homeActivityViewModel.showUpcomingVideos().observe(this, Observer { movies ->
-            recyclerView.adapter = HomeAdapter(movies)
-            homeActivityViewModel.progressVisible.set(GONE)
+        binding.lifecycleOwner = this
+        binding.viewmodel = homeActivityViewModel
+
+        val homeAdapter = HomeAdapter()
+        binding.recyclerView.adapter = homeAdapter
+        homeActivityViewModel.moviesLiveData.observe(this, Observer {
+            homeAdapter.submitList(it)
+        })
+
+        homeActivityViewModel.progressLoadStatus.observe(this, Observer {
+            if (it == HomeDataSource.LoadingStatus.LOADING) {
+                homeActivityViewModel.progressVisible.set(VISIBLE)
+            } else if (it == HomeDataSource.LoadingStatus.LOADED) {
+                homeActivityViewModel.progressVisible.set(GONE)
+            }
         })
     }
 }

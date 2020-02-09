@@ -1,10 +1,9 @@
 package com.arctouch.codechallenge.repository.webservice
 
+
 import com.arctouch.codechallenge.model.Genre
 import com.arctouch.codechallenge.model.Movie
 import com.arctouch.codechallenge.model.dto.GenreDTO
-import com.arctouch.codechallenge.model.dto.MovieDTO
-import com.arctouch.codechallenge.model.dto.MovieDetailDTO
 import com.arctouch.codechallenge.model.dto.UpcomingMoviesDTO
 import retrofit2.Call
 import retrofit2.Callback
@@ -14,30 +13,33 @@ class MovieService {
 
     private val api: TmdbApi = RetrofitConfig().tmdbApi
 
-    fun getMovie(id: Long, success: (movies: List<Movie>) -> Unit) {
+    fun getMovie(id: Long, success: (movie: Movie) -> Unit) {
         api.movie(id, TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)
-                .enqueue(object : Callback<MovieDetailDTO> {
-                    override fun onResponse(call: Call<MovieDetailDTO>, response: Response<MovieDetailDTO>) {
-                        var movieListDTO: List<MovieDTO> = response.body()?.results ?: listOf()
-                        var movieList: List<Movie> = getListFromDTO(movieListDTO)
-                        success(movieList)
+                .enqueue(object : Callback<Movie> {
+                    override fun onResponse(call: Call<Movie>, response: Response<Movie>) {
+                        var movie = response.body()
+                        success(movie!!)
                     }
 
-                    override fun onFailure(call: Call<MovieDetailDTO>, t: Throwable) {
+                    override fun onFailure(call: Call<Movie>, t: Throwable) {
 
                     }
 
                 })
     }
 
-    fun getUpcomingMovies(success: (movies: List<Movie>) -> Unit) {
-        api.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, 1, TmdbApi.DEFAULT_REGION)
+    fun getUpcomingMovies(page: Long, success: (movies: UpcomingMoviesDTO) -> Unit) {
+        api.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page)
                 .enqueue(object : Callback<UpcomingMoviesDTO> {
 
                     override fun onResponse(call: Call<UpcomingMoviesDTO>, response: Response<UpcomingMoviesDTO>) {
-                        var movieListDTO: List<MovieDTO> = response.body()?.results ?: listOf()
+                        var movieListDTO: List<Movie> = response.body()?.results ?: listOf()
                         var movieList: List<Movie> = getListFromDTO(movieListDTO)
-                        success(movieList)
+
+                        response.body()?.let {
+                            success(it)
+                        }
+
                     }
 
                     override fun onFailure(call: Call<UpcomingMoviesDTO>, t: Throwable) {
@@ -47,8 +49,8 @@ class MovieService {
                 })
     }
 
-    private fun getListFromDTO(movieListDTO: List<MovieDTO>) =
-            movieListDTO.map { movieDTO -> Movie(movieDTO.id, movieDTO.title, movieDTO.overview, null, movieDTO.genreIds, movieDTO.posterPath, movieDTO.backdropPath, movieDTO.releaseDate) }
+    private fun getListFromDTO(movieList: List<Movie>) =
+            movieList.map { movieDTO -> Movie(movieDTO.id, movieDTO.title, movieDTO.overview, null, movieDTO.genreIds, movieDTO.posterPath, movieDTO.backdropPath, movieDTO.releaseDate) }
 
     fun getGenres(success: (genres: List<Genre>) -> Unit) {
         api.genres(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)

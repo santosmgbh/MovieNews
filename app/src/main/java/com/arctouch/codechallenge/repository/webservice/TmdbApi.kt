@@ -1,7 +1,7 @@
 package com.arctouch.codechallenge.repository.webservice
 
+import com.arctouch.codechallenge.model.Movie
 import com.arctouch.codechallenge.model.dto.GenreDTO
-import com.arctouch.codechallenge.model.dto.MovieDetailDTO
 import com.arctouch.codechallenge.model.dto.UpcomingMoviesDTO
 import retrofit2.Call
 import retrofit2.http.GET
@@ -25,10 +25,9 @@ interface TmdbApi {
 
     @GET("movie/upcoming")
     fun upcomingMovies(
-        @Query("api_key") apiKey: String,
-        @Query("language") language: String,
-        @Query("page") page: Long,
-        @Query("region") region: String
+            @Query("api_key") apiKey: String,
+            @Query("language") language: String,
+            @Query("page") page: Long
     ): Call<UpcomingMoviesDTO>
 
     @GET("movie/{id}")
@@ -36,5 +35,5 @@ interface TmdbApi {
         @Path("id") id: Long,
         @Query("api_key") apiKey: String,
         @Query("language") language: String
-    ): Call<MovieDetailDTO>
+    ): Call<Movie>
 }
