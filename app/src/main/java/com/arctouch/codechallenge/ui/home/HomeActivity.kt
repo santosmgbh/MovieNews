@@ -3,15 +3,15 @@ package com.arctouch.codechallenge.ui.home
 import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.databinding.HomeActivityBinding
-import com.arctouch.codechallenge.ui.base.BaseActivity
 import com.arctouch.codechallenge.ui.detail.DetailActivity
 import org.koin.android.viewmodel.ext.android.viewModel
 
-class HomeActivity : BaseActivity() {
+class HomeActivity : AppCompatActivity() {
 
     private val homeActivityViewModel: HomeActivityViewModel by viewModel()
 
@@ -44,5 +44,8 @@ class HomeActivity : BaseActivity() {
                 homeActivityViewModel.progressVisible.set(GONE)
             }
         })
+        supportActionBar?.let {
+            it.title = getString(R.string.home_toolbar_title)
+        }
     }
 }

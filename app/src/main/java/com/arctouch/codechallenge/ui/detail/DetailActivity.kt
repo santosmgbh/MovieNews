@@ -3,18 +3,19 @@ package com.arctouch.codechallenge.ui.detail
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.databinding.DetailActivityBinding
-import com.arctouch.codechallenge.ui.base.BaseActivity
 import com.arctouch.codechallenge.util.MovieImageUrlBuilder
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.detail_activity.*
 import org.koin.android.viewmodel.ext.android.viewModel
 
 
-class DetailActivity : BaseActivity() {
+class DetailActivity : AppCompatActivity() {
 
     private val detailActivityViewModel: DetailActivityViewModel by viewModel()
 
@@ -29,6 +30,10 @@ class DetailActivity : BaseActivity() {
 
 
         detailActivityViewModel.loadMovie(movieId).observe(this, Observer {
+            supportActionBar?.let { actionBar ->
+                actionBar.title = it.title
+                actionBar.setDisplayHomeAsUpEnabled(true)
+            }
             detailActivityViewModel.name.set(it.title)
             detailActivityViewModel.overview.set(it.overview)
             detailActivityViewModel.releaseDate.set(it.releaseDate)
@@ -40,8 +45,17 @@ class DetailActivity : BaseActivity() {
             }
         })
 
+
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when {
+            item?.itemId == android.R.id.home -> {
+                finish()
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     companion object {
         private const val MOVIE_ID: String = "movie_id"
