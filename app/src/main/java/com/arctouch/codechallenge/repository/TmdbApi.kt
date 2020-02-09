@@ -1,4 +1,4 @@
-package com.arctouch.codechallenge.api
+package com.arctouch.codechallenge.repository
 
 import com.arctouch.codechallenge.model.GenreResponse
 import com.arctouch.codechallenge.model.Movie
