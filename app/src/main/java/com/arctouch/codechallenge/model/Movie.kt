@@ -4,7 +4,7 @@ import androidx.recyclerview.widget.DiffUtil
 import com.google.gson.annotations.SerializedName
 
 data class Movie(
-        val id: Int,
+        val id: Long,
         val title: String,
         val overview: String?,
         val genres: List<Genre>?,

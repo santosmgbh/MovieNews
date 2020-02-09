@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.databinding.HomeActivityBinding
 import com.arctouch.codechallenge.ui.base.BaseActivity
+import com.arctouch.codechallenge.ui.detail.DetailActivity
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class HomeActivity : BaseActivity() {
@@ -22,6 +23,15 @@ class HomeActivity : BaseActivity() {
         binding.viewmodel = homeActivityViewModel
 
         val homeAdapter = HomeAdapter()
+        homeAdapter.onItemClick = {
+            val child = binding.recyclerView.getChildLayoutPosition(it)
+
+            val movie = homeAdapter.getItemFromPosition(child)
+            movie?.id?.let { movieId ->
+                startActivity(DetailActivity.openActivityIntent(this, movieId))
+            }
+
+        }
         binding.recyclerView.adapter = homeAdapter
         homeActivityViewModel.moviesLiveData.observe(this, Observer {
             homeAdapter.submitList(it)

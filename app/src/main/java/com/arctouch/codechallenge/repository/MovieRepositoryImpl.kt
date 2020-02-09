@@ -24,8 +24,8 @@ class MovieRepositoryImpl : MovieRepository, KoinComponent {
     override fun getUpcomingMovies(page: Long, success: (movies: UpcomingMoviesDTO) -> Unit) {
         movieService.getUpcomingMovies(page) {
             getGenres { genres ->
-                //                val moviesWithGenres = fillGenresInMovies(it, genres)
-                success(it)
+                val upcomingMoviesCopy = it.copy(results = fillGenresInMovies(it.results, genres))
+                success(upcomingMoviesCopy)
             }
 
         }

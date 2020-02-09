@@ -16,6 +16,8 @@ import kotlinx.android.synthetic.main.movie_item.view.*
 class HomeAdapter : PagedListAdapter<Movie, HomeAdapter.ViewHolder>(DiffUtilCallBack()) {
 
 
+    var onItemClick: ((view: View) -> Unit) = {}
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val movieImageUrlBuilder = MovieImageUrlBuilder()
@@ -35,6 +37,9 @@ class HomeAdapter : PagedListAdapter<Movie, HomeAdapter.ViewHolder>(DiffUtilCall
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.movie_item, parent, false)
+        view.setOnClickListener {
+            onItemClick(it)
+        }
         return ViewHolder(view)
     }
 
@@ -43,7 +48,10 @@ class HomeAdapter : PagedListAdapter<Movie, HomeAdapter.ViewHolder>(DiffUtilCall
         getItem(position)?.let {
             holder.bind(it)
         }
+    }
 
+    fun getItemFromPosition(position: Int): Movie? {
+        return getItem(position)
     }
 
 }
